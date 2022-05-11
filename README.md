@@ -5,13 +5,19 @@ CREDIT: John Pauler.
 You can view his course here: https://www.udemy.com/course/advanced-sql-mysql-for-analytics-business-intelligence/
 
 ## Case Study Overview
-Help the owner of the restauntant to generate some datasets so his team can easily inspect the data without needing to use SQL.
 
-**1. Visiting patterns**
+Provide answers for ad-hoc request from manager.
 
-**2. Amount customers have spent**
+**1. Using trended perfomance data to show company's growth**
 
-**3. Top favorite products**
+**2. Explain details company's perfomance**
+
+**3. Quantify the revenue impact**
+
+**4. Analyze current performance and assess upcoming opportunities**
+
+**5. Explain growth by diving to channels and website optimizations**
+
 
 ## Summarized Insights
 
@@ -24,7 +30,7 @@ Help the owner of the restauntant to generate some datasets so his team can easi
 3. Aggregate functions: SUM, COUNT
 4. CASE WHEN
 
-## 1. Gsearch seems to be biggest driver of business =>  pull monthly trends for gsearch sessions and orders to show growth
+## 1. Gsearch seems to be biggest driver of business. Request is: pull monthly trends for gsearch sessions and orders to showcase growth
 
 ### Steps:
 - Use **LEFT JOIN** to find all sales for each customers
@@ -53,7 +59,7 @@ ORDER BY yy;
 
 
 
-## 2. monthly similar trend for gsearch, split nonbrand and brand. Manager wonders if brand is picking up at all
+## 2. Display similar trend for gsearch monthly, but this time splitting out nonbrand and brand. Manager wonders if brand is picking up at all
 
 ### Steps:
 - Use **COUNT AND GROUP BY** to find how many days each customers visited
@@ -84,7 +90,7 @@ GROUP BY
 
 
 
-## 3. still gsearch, dive into nonbrand, pull monthly sessions and orders split by device type ?
+## 3. Still on gsearch, dive into nonbrand, pull monthly sessions and orders split by device type ?
 
 ### Steps:
 - Use **CTE** and **RANK()** to rank order by each customers
@@ -118,7 +124,7 @@ GROUP BY
 
 
 
-## 4. pull monthly sessions trends for Gesearch, alongside monthly trends for each channels 
+## 4. Pull monthly sessions trends for Gesearch, alongside monthly trends for each channels 
 
 
 ### Steps:
@@ -145,7 +151,7 @@ GROUP BY
 
 
 
-## 5. website performance improvement, pull session to order conversion rate, by month
+## 5. To analyze website performance improvement, pull session to order conversion rate, by month for the first 8 month
 
 
 ### Steps:
@@ -178,7 +184,7 @@ GROUP BY
 
 
 
-## 6. For the gsearch lander test, estimate revenue that test earned us
+## 6. For the gsearch lander test, estimate revenue that test has earned from 19 Jun to Jul 28
 
 
 ### Steps:
@@ -271,7 +277,7 @@ CREATE temporary TABLE conv_rate AS
 
 
 
-## 7. For landing page test analyzed previous, show full conversion funnel from each of the two pages to orders
+## 7. For landing page test analyzed previous, show full conversion funnel from each of the two pages to orders from 19 Jun to Jul 28
 
 ### Steps:
 - Use **CTE** and **RANK()*** to rank each time customers purchased
@@ -419,7 +425,7 @@ Group By YEAR(A.created_at),
 
 
 
-## 10. Showcase all of efficiency improvements. Show quarterly figures for session-to-order, conv rate, rev per order, rev per session
+## 10. Showcase all of efficiency improvements. Show quarterly figures for session-to-order, conversion rate, revenue per order, revenue per session
 
 ### Steps:
 - Use **CASE WHEN** to double the point for product "sushi" and first period when they became membership
@@ -490,7 +496,7 @@ Group By YEAR(A.created_at),
 ````
 
 
- ## 13. pull monthly trending for revenue and margin by product, along with total sales and revenu. Note anything about seasonality  
+ ## 13. Pull monthly trending for revenue and margin by product, along with total sales and revenu. Note anything about seasonality  
  
 ### Steps:
 - Use **CREATE TEMP TABLE** to create a dataset which contains item information, including boolean column "member"
@@ -510,9 +516,8 @@ Select
 	ROUND(SUM(CASE WHEN primary_product_id = 4 then price_usd ELSE NULL END),2) as Mini_bear_rev,
     ROUND(SUM(CASE WHEN primary_product_id = 4 then price_usd - cogs_usd ELSE NULL END),2) as Mini_bear_margin
 From orders 
-GROUP BY 
-		YEAR(created_at),
-		MONTH(created_at);
+GROUP BY YEAR(created_at),
+	MONTH(created_at);
 ````
 
 
@@ -562,7 +567,7 @@ GROUP BY 1,2;
 
 
 
- ## 15. we made 4th product available as a primary product on Dec 05, 2014 Pull sales data since then, and show how well each product cross-sell from one another
+ ## 15. 4th product was available as a primary product on Dec 05, 2014 Pull sales data since then, and show how well each product cross-sell from one another
  
 ### Steps:
 - Use **CREATE TEMP TABLE** to create a dataset which contains item information, including boolean column "member"
