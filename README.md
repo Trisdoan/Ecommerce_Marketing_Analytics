@@ -155,8 +155,9 @@ GROUP BY
 
 
 ### Steps:
-- Use **CTE** and **RANK()** to find and rank all items purchased by each customers
-- Get only the first rank of each customers
+- Use **LEFT JOIN** to merge website_session table with orders table
+- Use **COUNT DISTINCT** to find how many sessions and orders were generated
+- Then divide amount of orders by sessions to calculate conversion rate
 
 ````sql
 Select
@@ -184,26 +185,31 @@ GROUP BY
 
 
 
-## 6. For the gsearch lander test, estimate revenue that test has earned from 19 Jun to Jul 28
+## 6. For the gsearch lander test, estimate incremental revenue that test has earned from 19 Jun to Jul 28
 
 
-### Steps:
-- Use **CTE** and **RANK()*** to rank each time customers purchased
-- Use **LEFT JOIN** to join back to table menu to get product_name
+First, I used **Min** to find the first test pageview when the gsearch lander test started.
 
 ````sql
 Select 
 	Min(website_pageview_id) as first_test_pv
 From website_pageviews
 Where pageview_url = '/lander-1';
-# first website_pageview_id = 23504 when first test started
+````
+So when first test started, the vert first website_pageview_id is  23504 
 
 
+Then I created a temporary table to calculate conversion rate.
+* Firstly, I used **CTE** where I merged website_pageviews and website_sessions to generate all session with their first pageview
+* Secondly, I found landing page for each session by **LEFT JOIN** with website_pageviews again, restricting only url '/home' and '/lander-1'
+* Thirdly, I joined with order to find order for each sessions which converted in to transactions. I used **LEFT JOIN** because there are some sessions not converting into transactions.
+* Lastly, I calculated conversion rate for each landing page.
+````sql
 DROP TABLE IF EXISTS conv_rate; 
 CREATE temporary TABLE conv_rate AS 	
 	WITH first_test_pv AS (
 		Select
-			A.website_session_id,
+		    A.website_session_id,
 		    Min(A.website_pageview_id) as min_pv_id
 		From website_pageviews A
 		INNER JOIN website_sessions B
@@ -242,11 +248,14 @@ CREATE temporary TABLE conv_rate AS
 		Count(Distinct order_id)/Count(Distinct website_session_id) as conv_rate
 	From nonbrand_test_session_w_orders
 	Group by 1;
+````
+So
 	-- 0.0319 for /home vs 0.0406 for lander-1
 	-- 0.0087 additional orders per session
 
 
---Finding the most recent pageview for gesearch nonbrand where the traffic was sent to home 
+In order to find incremental revenue, I found the latest session, meaning the first session of testlanding page.
+````sql
 	Select
 		Max(A.website_session_id) as most_recent_gsearch_nonbrand_home_pv
 	From website_sessions A
@@ -256,8 +265,11 @@ CREATE temporary TABLE conv_rate AS
 		AND utm_campaign = 'nonbrand'
     	AND pageview_url = '/home'
 		AND A.created_at < '2012-11-27';
-	-- Max website_session_id = 17145
+````
+So the first session starting test landing page is 17145.
 
+Finally, I counted all session starting with session_id = 17145
+````sql
 	Select 
 		Count(website_session_id) as sessions_since_test
 	From website_sessions
@@ -265,9 +277,11 @@ CREATE temporary TABLE conv_rate AS
 		AND website_session_id > 17145
     	AND utm_source = 'gsearch'
     	AND utm_campaign = 'nonbrand';
+````
+So
 	-- sessions_since_test: 22972
 	-- 22972 * 0.00887(incremental cvrate) = 202 incremental orders since that test;
-````
+	
 | customer_id | order_date  |product_name |
 | ----------- | ----------- |-----------  |
 | A           | 2021-01-07  |curry        |
@@ -275,14 +289,13 @@ CREATE temporary TABLE conv_rate AS
 
 
 
-
-
 ## 7. For landing page test analyzed previous, show full conversion funnel from each of the two pages to orders from 19 Jun to Jul 28
 
-### Steps:
-- Use **CTE** and **RANK()*** to rank each time customers purchased
-- Use **LEFT JOIN** to join back to table menu to get product_name
-
+I initially created a temporary table which includes full funnels, meaning the road leading customers from homepage to thank-you for purchasing.
+* Firstly, I merged website_sessions and website_pageviews by **LEFT JOIN**
+* Then I used **CASE WHEN** to check if each segment went through each section of the funnel
+* Thirdly, I counted how many sessions went through each segment of the funnel
+* Lastly, I counted how many sessions for each  two landing pages: homepage and customer_lander
 ````sql
 DROP TABLE IF EXISTS full_funnel;
 CREATE TEMP TABLE full_funnel AS (
@@ -333,10 +346,12 @@ CREATE TEMP TABLE full_funnel AS (
 		COUNT(DISTINCT CASE WHEN saw_billing_page = 1 THEN website_session_id ELSE NULL END) AS to_billing,
 		COUNT(DISTINCT CASE WHEN saw_thankyou = 1 THEN website_session_id ELSE NULL END) AS to_thankyou
 	FROM session_level
-	GROUP BY 1
-);
+	GROUP BY 1);
+````
+
 	
-#See how conversion rate between each page
+Finally, I calculated conversion rate for each page
+````sql
 	Select
 		segment,
 		to_product/sessions as lander_clickthr,
@@ -561,9 +576,6 @@ LEFT JOIN orders C
 	ON A.website_session_id = C.website_session_id
 GROUP BY 1,2;
 ````
-
-
-
 
 
 
