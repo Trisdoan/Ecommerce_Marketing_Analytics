@@ -617,6 +617,6 @@ WITH cte AS (
 	    ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 3 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_3,
 	    ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 4 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_4
     From cte
-    GROUP BY primary_product_id;
+    GROUP BY primary_product_id
 ````
 
