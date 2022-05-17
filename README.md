@@ -493,43 +493,42 @@ GROUP BY
 | A           | 2021-01-01  |curry         |15     |NO      |null     |
 
 
- ## 12. Showcase overall session-to-order conv rate trends for those same channels, by quarter Please also make note of any periods where we made major improvement, optimization
+ ## 12. Showcase overall session-to-order conv rate trends for those same channels, by quarter. Please also make note of any periods where we made major improvement, optimization
  
 ### Steps:
-- Use **CREATE TEMP TABLE** to create a dataset which contains item information, including boolean column "member"
-- Use **CASE WHEN** and **DENSE_RANK()** to rank products based on order_date 
+- Use **LEFT JOIN** to merge website_sessions with orders so as to pull sessions and orders, trended by quarter.
+- Then divided number of orders by number of sessions to pull conversion rate per quarter.
 
 ````sql
 Select
-	YEAR(A.created_at) AS yr,
+    YEAR(A.created_at) AS yr,
     quarter(A.created_at) AS qr,
-	COUNT(DISTINCT B.order_id)/COUNT(DISTINCT A.website_session_id) AS session_to_order
+    COUNT(DISTINCT B.order_id)/COUNT(DISTINCT A.website_session_id) AS session_to_order
 From website_sessions A 
 LEFT JOIN orders B
-	ON A.website_session_id = B.website_session_id
+    ON A.website_session_id = B.website_session_id
 Group By YEAR(A.created_at),
-		quarter(A.created_at);
+	quarter(A.created_at);
 ````
 
 
  ## 13. Pull monthly trending for revenue and margin by product, along with total sales and revenu. Note anything about seasonality  
  
 ### Steps:
-- Use **CREATE TEMP TABLE** to create a dataset which contains item information, including boolean column "member"
-- Use **CASE WHEN** and **DENSE_RANK()** to rank products based on order_date 
+- Use **CASE WHEN** and **SUM** to get revenue and margin by product
 
 ````sql
 Select
-	YEAR(created_at) AS yy,
-	MONTH(created_at) AS mm,
-	ROUND(SUM(price_usd)) as total_rev,
+    YEAR(created_at) AS yy,
+    MONTH(created_at) AS mm,
+    ROUND(SUM(price_usd)) as total_rev,
     ROUND(SUM(CASE WHEN primary_product_id = 1 then price_usd ELSE NULL END),2) as MrFuzzy_rev,
     ROUND(SUM(CASE WHEN primary_product_id = 1 then price_usd - cogs_usd ELSE NULL END),2) as MrFuzzy_margin,
     ROUND(SUM(CASE WHEN primary_product_id = 2 then price_usd ELSE NULL END),2) as Love_Bear_rev,
     ROUND(SUM(CASE WHEN primary_product_id = 2 then price_usd - cogs_usd ELSE NULL END),2) as Love_Bear_margin,
-	ROUND(SUM(CASE WHEN primary_product_id = 3 then price_usd ELSE NULL END),2) as Sugar_Panda_rev,
+    ROUND(SUM(CASE WHEN primary_product_id = 3 then price_usd ELSE NULL END),2) as Sugar_Panda_rev,
     ROUND(SUM(CASE WHEN primary_product_id = 3 then price_usd - cogs_usd ELSE NULL END),2) as Sugar_Panda_margin,
-	ROUND(SUM(CASE WHEN primary_product_id = 4 then price_usd ELSE NULL END),2) as Mini_bear_rev,
+    ROUND(SUM(CASE WHEN primary_product_id = 4 then price_usd ELSE NULL END),2) as Mini_bear_rev,
     ROUND(SUM(CASE WHEN primary_product_id = 4 then price_usd - cogs_usd ELSE NULL END),2) as Mini_bear_margin
 From orders 
 GROUP BY YEAR(created_at),
