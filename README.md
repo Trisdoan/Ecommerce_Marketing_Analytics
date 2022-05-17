@@ -538,30 +538,33 @@ GROUP BY YEAR(created_at),
 
  ## 14. Dive deep into impact of introducing new products. Pull monthly sessions to the product page, and show how % of those sessions clicking through another page has changed over time, along with a view of how conversion from products to placing an order has improved
  
-### Steps:
-- Use **CREATE TEMP TABLE** to create a dataset which contains item information, including boolean column "member"
-- Use **CASE WHEN** and **DENSE_RANK()** to rank products based on order_date 
 
+Firstly, I created a temporary table which contains number of sessons going to page "product"
 ````sql
 DROP TABLE IF EXISTS session_to_product;
 CREATE TEMPORARY TABLE session_to_product AS
 Select 
-	A.website_session_id,
+    A.website_session_id,
     B.website_pageview_id,
     A.created_at as date_seen
 From website_sessions A
 LEFT JOIN website_pageviews B
 	ON A.website_session_id = B.website_session_id
 WHERE  B.pageview_url = '/products';
+````
 
--- Pull monthly sessions to the product page
+Then I counted distinct sessions trended by month
+````sql
 Select
-	YEAR(date_seen) AS yr,
+    YEAR(date_seen) AS yr,
     MONTH(date_seen) AS mn,
     COUNT(DISTINCT website_session_id) AS sessions
 From session_to_product
 GROUP BY 1,2;
+````
 
+
+````sql
 -- show how % of those sessions clicking 
 Select 
 	YEAR(date_seen) AS yr,
@@ -581,36 +584,38 @@ GROUP BY 1,2;
 
  ## 15. 4th product was available as a primary product on Dec 05, 2014 Pull sales data since then, and show how well each product cross-sell from one another
  
-### Steps:
-- Use **CREATE TEMP TABLE** to create a dataset which contains item information, including boolean column "member"
-- Use **CASE WHEN** and **DENSE_RANK()** to rank products based on order_date 
-
+ Firstly, I created a temporary table to pull order_id with primary_product_id, filted by dates greater than 05/12/2014
 ````sql
 DROP TABLE IF EXISTS sale_data ;
 CREATE TEMPORARY TABLE sale_data AS
 Select
-	order_id,
+    order_id,
     primary_product_id
 From orders
 WHERE created_at >'2014-12-05';
+````
 
+Then I used **CTE** to merge sale_data(temporary table) with order_items.
+
+Finally, I used **CASE WHEN** and **COUNT DISTINCT** to calculate conversion rate for each cross sell product
+````sql
 WITH cte AS (
 	Select
-		A.order_id,
-        A.primary_product_id,
-        B.product_id AS cross_sell_product
+	    A.order_id,
+            A.primary_product_id,
+            B.product_id AS cross_sell_product
     From sale_data A
     LEFT JOIN order_items B
 		ON A.order_id = B.order_id
         AND is_primary_item = 0
 )
 	Select
-		primary_product_id,
-        COUNT(DISTINCT order_id) AS total_orders,
-        ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 1 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_1,
-		ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 2 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_2,
-		ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 3 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_3,
-		ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 4 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_4
+	    primary_product_id,
+            COUNT(DISTINCT order_id) AS total_orders,
+            ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 1 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_1,
+	    ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 2 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_2,
+	    ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 3 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_3,
+	    ROUND(COUNT(DISTINCT CASE WHEN cross_sell_product = 4 THEN order_id ELSE NULL END)/COUNT(DISTINCT order_id),2) AS cross_sell_with_product_4
     From cte
     GROUP BY primary_product_id;
 ````
