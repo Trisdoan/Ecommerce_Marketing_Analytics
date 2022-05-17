@@ -371,9 +371,8 @@ Finally, I calculated conversion rate for each page
 
 ## 8. Quantify impact of billing test. Analyze the lift  generated from test(Sep 10 - Nov 10), in term of revenue per billing page session And pull number of billing page sessions for the past month to understand monthly impact
 
-### Steps:
-- Use **LEFT JOIN** to get information of each items when they were purchased
-- Use **WHERE** to get items only order_date < join_date
+* Firstly, I created a **CTE** to get sessions which went to 2 billing pages, including revenue generated.
+* Then I divided total revenue by number of sessions in order to get revenue generated per session.
 
 ````sql
 With billing_pageview_w_order AS (
@@ -393,20 +392,20 @@ With billing_pageview_w_order AS (
 		COUNT(DISTINCT website_session_id) AS sessions,
 		SUM(price_usd)/COUNT(DISTINCT website_session_id) AS rev_per_page
 	From billing_pageview_w_order
-	GROUP BY biling_version_seen
-
-	-- Old version: 22.99 USD 
-	-- New version: 31.38 USD 
-	-- => new version brought around 8 USD per page view
-
-	#Calculate how much money this test bring
+	GROUP BY biling_version_seen;
+````
+So the old verson generated 22.99 USD per page, while the new version(/billing-2) generated 31.38 USD, more 8 USD than the old one did.
+	
+Finally, I count the total sessions for the past month (27/10 -27/11)
+````sql
 	Select
 		COUNT(website_session_id) AS billing_session
 	From website_pageviews
 	Where pageview_url IN ('/billing', '/billing-2')
-		AND created_at BETWEEN '2012-10-27' AND '2012-11-27'
-	-- 1194 sessions => value of test: 10,160k USD ;
+		AND created_at BETWEEN '2012-10-27' AND '2012-11-27';
 ````
+So there were 1194 sessions in total when the new version was implemented, meaning the company generated 10,160k USD.
+
 | customer_id | total_unique_product|total_price  |
 | ----------- | ------------------- |-----------  |
 | A           | 2                   |25           |
@@ -417,20 +416,21 @@ With billing_pageview_w_order AS (
 ## 9.  Show volume growth: Pull overall session and order volume, trended by quarter
 
 ### Steps:
-- Use **CASE WHEN** to double the point for product "sushi"
+- Use **LEFT JOIN** to merge website_sessions with orders so as to pull sessions and orders, trended by quarter.
+- Then divided number of orders by number of sessions to pull conversion rate per quarter.
 
 ````sql
 Select
 	YEAR(A.created_at) as yr,
-    quarter(A.created_at) as qr,
+	quarter(A.created_at) as qr,
 	COUNT(DISTINCT A.website_session_id) as total_session,
-    COUNT(DISTINCT B.order_id) as orders,
+	COUNT(DISTINCT B.order_id) as orders,
 	COUNT(DISTINCT B.order_id)/COUNT(DISTINCT A.website_session_id) as conv_rate
 From website_sessions A 
 LEFT JOIN orders B
 	ON A.website_session_id = B.website_session_id
 Group By YEAR(A.created_at),
-		quarter(A.created_at);
+	 quarter(A.created_at);
 ````
 | customer_id | total_point |
 | ----------- | ----------- |
@@ -443,20 +443,21 @@ Group By YEAR(A.created_at),
 ## 10. Showcase all of efficiency improvements. Show quarterly figures for session-to-order, conversion rate, revenue per order, revenue per session
 
 ### Steps:
-- Use **CASE WHEN** to double the point for product "sushi" and first period when they became membership
+- Did the same as the above questions.
+- Added revenue generated per order and session.
 
 ````sql
 Select
-	YEAR(A.created_at) AS yr,
+    YEAR(A.created_at) AS yr,
     quarter(A.created_at) AS qr,
-	COUNT(DISTINCT B.order_id)/COUNT(DISTINCT A.website_session_id) AS session_to_order,
+    COUNT(DISTINCT B.order_id)/COUNT(DISTINCT A.website_session_id) AS session_to_order,
     SUM(price_usd)/COUNT(DISTINCT B.order_id) AS rev_per_order,
     SUM(price_usd)/COUNT(DISTINCT A.website_session_id) AS rev_per_session
 From website_sessions A 
 LEFT JOIN orders B
-	ON A.website_session_id = B.website_session_id
+    ON A.website_session_id = B.website_session_id
 Group By YEAR(A.created_at),
-		quarter(A.created_at);
+	 quarter(A.created_at);
 ````
 | customer_id | total_point |
 | ----------- | ----------- |
@@ -467,24 +468,24 @@ Group By YEAR(A.created_at),
  ## 11. Showcase grown specific channels. pull quarterly view of orders from Gsearch nonbrand, Bsearch nonbrand, brand search overall, organic search and direct type-in
  
 ### Steps:
-- Use **CREATE TEMP TABLE** to create a dataset which contains item information, including boolean column "member"
-- Use **CASE WHEN** and **DENSE_RANK()** to rank products based on order_date 
+- Use **LEFT JOIN** to merge website_sessions with orders so as to pull orders, trended by quarter.
+- Use **CASE WHEN** to separate orders by specific channels.
 
 ````sql
 Select
-	YEAR(A.created_at) AS yy,
-	quarter(A.created_at) AS mm,
+    YEAR(A.created_at) AS yy,
+    quarter(A.created_at) AS mm,
     COUNT(DISTINCT CASE WHEN utm_source = 'gsearch' and utm_campaign = 'nonbrand' THEN  order_id else null END) AS gsearch_nonbrand_order,
     COUNT(DISTINCT CASE WHEN utm_source = 'bsearch' and utm_campaign = 'nonbrand' then order_id else null END) AS bsearch_nonbrand_order,
-	COUNT(DISTINCT CASE WHEN utm_campaign = 'brand' then order_id else null END) AS brand_order,
+    COUNT(DISTINCT CASE WHEN utm_campaign = 'brand' then order_id else null END) AS brand_order,
     COUNT(DISTINCT CASE WHEN utm_source is null and http_referer is not null then order_id else null END) AS organic_order,
-	COUNT(DISTINCT CASE WHEN utm_source is null and http_referer is null then order_id else null END) AS direct_type_in_order
+    COUNT(DISTINCT CASE WHEN utm_source is null and http_referer is null then order_id else null END) AS direct_type_in_order
 From website_sessions A 
 LEFT JOIN orders B 
 	ON A.website_session_id = B.website_session_id
 GROUP BY 
-		YEAR(A.created_at),
-		quarter(A.created_at);
+	YEAR(A.created_at),
+	quarter(A.created_at);
 ````
 | customer_id | order_date  | product_name | price | member | ranking |
 | ----------- | ----------- | -----------  | ----- | ------ |-------- |
