@@ -515,7 +515,7 @@ Group By YEAR(A.created_at),
  ## 13. Pull monthly trending for revenue and margin by product, along with total sales and revenu. Note anything about seasonality  
  
 ### Steps:
-- Use **CASE WHEN** and **SUM** to get revenue and margin by product
+- Use **CASE WHEN** and **SUM** to get revenue and margin by product.
 
 ````sql
 Select
