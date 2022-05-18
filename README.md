@@ -28,7 +28,11 @@ Provide answers for ad-hoc request from manager.
 1. 
 
 # PART 1
-  The company has been live for 8 month. CEO requested to make a dashboard in order to present company performance metrics to the board
+  The company has been live for 8 month. CEO requested to make a dashboard in order to present company performance metrics to the board.
+  
+  The following dashboard is created by me in order to visualize what I found out after 8 month of the business.
+  
+  <img src="images/part1.png" width="800"/>
   
 ## 1. Gsearch seems to be biggest driver of business. Request is: pull monthly trends for gsearch sessions and orders to showcase growth
 
