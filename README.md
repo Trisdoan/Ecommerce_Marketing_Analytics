@@ -50,13 +50,6 @@ GROUP BY YEAR(A.created_at),MONTH(created_at)
 ORDER BY yy;
 ````
 
-| customer_id | total_sales |
-| ----------- | ----------- |
-| A           | 76          |
-| B           | 74          |
-| C           | 36          |
-
-
 
 ## 2. Display similar trend for gsearch monthly, but this time splitting out nonbrand and brand. Manager wonders if brand is picking up at all
 
@@ -72,7 +65,7 @@ Select
     COUNT(DISTINCT CASE WHEN A.utm_campaign = 'nonbrand' then A.website_session_id else null END) AS non_brand_ses_count,
     COUNT(DISTINCT CASE WHEN A.utm_campaign = 'nonbrand' then B.order_id else null END) AS non_brand_order_count,
     COUNT(DISTINCT CASE WHEN A.utm_campaign = 'brand' then A.website_session_id else null END) AS brand_ses_count,
-    COUNT(DISTINCT CASE WHEN A.utm_campaign = 'nonbrand' then B.order_id  else null END) AS brand_order_count
+    COUNT(DISTINCT CASE WHEN A.utm_campaign = 'brand' then B.order_id  else null END) AS brand_order_count
 From website_sessions A 
 LEFT JOIN orders B
 	ON A.website_session_id = B.website_session_id
@@ -82,11 +75,7 @@ GROUP BY
 		MONTH(A.created_at);
 
 ````
-| customer_id | days        |
-| ----------- | ----------- |
-| B           | 6           |
-| A           | 4           |
-| C           | 2           |
+
 
 
 
@@ -114,12 +103,7 @@ GROUP BY
 		YEAR(A.created_at),
 		MONTH(A.created_at);
 ````
-| customer_id | product_name|
-| ----------- | ----------- |
-| A           | curry       |
-| A           | sushi       |
-| B           | curry       |
-| C           | ramen       |
+
 
 
 
@@ -144,9 +128,7 @@ GROUP BY
 		YEAR(created_at),
 		MONTH(created_at);
 ````
-| product_name | count_sales |
-| ------------ | ----------- |
-| ramen        | 8           |
+
 
 
 
@@ -173,13 +155,6 @@ GROUP BY
 		YEAR(A.created_at),
 		MONTH(A.created_at);
 ````
-| customer_id | product_name | count_sales |
-| ----------- | ------------ | ----------- |
-| A           | ramen        |3            |
-| B           | sushi        |2            |
-| B           | ramen        |2            |
-| B           | curry        |2            |
-| C           | ramen        |3            |
 
 
 
@@ -282,11 +257,6 @@ So
 	-- sessions_since_test: 22972
 	-- 22972 * 0.00887(incremental cvrate) = 202 incremental orders since that test;
 	
-| customer_id | order_date  |product_name |
-| ----------- | ----------- |-----------  |
-| A           | 2021-01-07  |curry        |
-| B           | 2021-01-11  |sushi        |
-
 
 
 ## 7. For landing page test analyzed previous, show full conversion funnel from each of the two pages to orders from 19 Jun to Jul 28
@@ -362,11 +332,6 @@ Finally, I calculated conversion rate for each page
 		to_thankyou/to_billing as billing_clickthr
 	FROM full_funnel;
 ````
-| customer_id | order_date  |product_name |
-| ----------- | ----------- |-----------  |
-| A           | 2021-01-01  |sushi        |
-| A           | 2021-01-01  |curry        |
-| B           | 2021-01-04  |sushi        |
 
 
 ## 8. Quantify impact of billing test. Analyze the lift  generated from test(Sep 10 - Nov 10), in term of revenue per billing page session And pull number of billing page sessions for the past month to understand monthly impact
@@ -406,10 +371,6 @@ Finally, I count the total sessions for the past month (27/10 -27/11)
 ````
 So there were 1194 sessions in total when the new version was implemented, meaning the company generated 10,160k USD.
 
-| customer_id | total_unique_product|total_price  |
-| ----------- | ------------------- |-----------  |
-| A           | 2                   |25           |
-| A           | 2                   |40           | 
 
 
 
@@ -432,12 +393,6 @@ LEFT JOIN orders B
 Group By YEAR(A.created_at),
 	 quarter(A.created_at);
 ````
-| customer_id | total_point |
-| ----------- | ----------- |
-| B           | 940         |
-| C           | 360         |
-| A           | 860         |
-
 
 
 ## 10. Showcase all of efficiency improvements. Show quarterly figures for session-to-order, conversion rate, revenue per order, revenue per session
@@ -459,11 +414,6 @@ LEFT JOIN orders B
 Group By YEAR(A.created_at),
 	 quarter(A.created_at);
 ````
-| customer_id | total_point |
-| ----------- | ----------- |
-| A           | 1370        |
-| B           | 940         |
-
 
  ## 11. Showcase grown specific channels. pull quarterly view of orders from Gsearch nonbrand, Bsearch nonbrand, brand search overall, organic search and direct type-in
  
@@ -487,11 +437,6 @@ GROUP BY
 	YEAR(A.created_at),
 	quarter(A.created_at);
 ````
-| customer_id | order_date  | product_name | price | member | ranking |
-| ----------- | ----------- | -----------  | ----- | ------ |-------- |
-| A           | 2021-01-01  |sushi         |10     |NO      |null     |
-| A           | 2021-01-01  |curry         |15     |NO      |null     |
-
 
  ## 12. Showcase overall session-to-order conv rate trends for those same channels, by quarter. Please also make note of any periods where we made major improvement, optimization
  
