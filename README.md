@@ -333,11 +333,11 @@ Finally, I calculated conversion rate for each page
 	Select
 		segment,
 		to_product/sessions as lander_clickthr,
-		to_mrfuzzy/to_product as product_clickthr,
-		to_cart/to_mrfuzzy as mrfuzzy_clickthr,
-		to_shipping/to_cart as cart_clickthr,
-		to_billing/to_shipping as shipping_clickthr,
-		to_thankyou/to_billing as billing_clickthr
+		to_mrfuzzy/sessions as product_clickthr,
+		to_cart/sessions as mrfuzzy_clickthr,
+		to_shipping/sessions as cart_clickthr,
+		to_billing/sessions as shipping_clickthr,
+		to_thankyou/sessions as billing_clickthr
 	FROM full_funnel;
 ````
 
