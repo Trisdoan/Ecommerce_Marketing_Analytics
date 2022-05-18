@@ -25,11 +25,11 @@ Provide answers for ad-hoc request from manager.
 
 
 ## Techniques I used:
-1. CTE
-2. Windown function: ROW_NUMBER, RANK()
-3. Aggregate functions: SUM, COUNT
-4. CASE WHEN
+1. 
 
+# PART 1
+  The company has been live for 8 month. CEO requested to make a dashboard in order to present company performance metrics to the board
+  
 ## 1. Gsearch seems to be biggest driver of business. Request is: pull monthly trends for gsearch sessions and orders to showcase growth
 
 ### Steps:
@@ -46,6 +46,7 @@ From website_sessions A
 LEFT JOIN orders B
 	ON A.website_session_id = B.website_session_id
 WHERE A.utm_source = 'gsearch'
+    AND A.created_at < '2012-11-27'
 GROUP BY YEAR(A.created_at),MONTH(created_at)
 ORDER BY yy;
 ````
@@ -69,7 +70,8 @@ Select
 From website_sessions A 
 LEFT JOIN orders B
 	ON A.website_session_id = B.website_session_id
-Where utm_source = 'gsearch'
+Where A.utm_source = 'gsearch'
+   AND A.utm.created_at < '2012-11-27'
 GROUP BY 
 		YEAR(A.created_at),
 		MONTH(A.created_at);
@@ -96,15 +98,13 @@ Select
 From website_sessions A 
 LEFT JOIN orders B
 	ON A.website_session_id = B.website_session_id
-Where utm_source = 'gsearch'
-	AND
-		utm_campaign = 'nonbrand'
+Where A.utm_source = 'gsearch'
+    AND A.utm_campaign = 'nonbrand'
+    AND A.utm.created_at < '2012-11-27'
 GROUP BY 
 		YEAR(A.created_at),
 		MONTH(A.created_at);
 ````
-
-
 
 
 
@@ -124,6 +124,7 @@ Select
     COUNT(DISTINCT CASE WHEN utm_source is null and http_referer is not null then website_session_id else null END) AS organic_sessions,
     COUNT(DISTINCT CASE WHEN utm_source is null and http_referer is null then website_session_id else null END) AS direct_type_in_sessions
 From website_sessions 
+WHERE website_sessions.created_at < '2012-11-27'
 GROUP BY 
 		YEAR(created_at),
 		MONTH(created_at);
@@ -143,17 +144,18 @@ GROUP BY
 
 ````sql
 Select
-	YEAR(A.created_at) AS yy,
-	MONTH(A.created_at) AS mm,
+    YEAR(A.created_at) AS yy,
+    MONTH(A.created_at) AS mm,
     COUNT(DISTINCT A.website_session_id) as sessions,
     COUNT(DISTINCT B.order_id) as orders,
     ROUND(COUNT(DISTINCT B.order_id)/COUNT(DISTINCT A.website_session_id),4)*100 as conv_rate
 From website_sessions A  
 LEFT JOIN orders B
 	On A.website_session_id = B.website_session_id
+WHERE  website_sessions.created_at < '2012-11-27'
 GROUP BY 
-		YEAR(A.created_at),
-		MONTH(A.created_at);
+	YEAR(A.created_at),
+	MONTH(A.created_at);
 ````
 
 
@@ -174,48 +176,54 @@ Where pageview_url = '/lander-1';
 So when first test started, the vert first website_pageview_id is  23504 
 
 
-Then I created a temporary table to calculate conversion rate.
-* Firstly, I used **CTE** where I merged website_pageviews and website_sessions to generate all session with their first pageview
-* Secondly, I found landing page for each session by **LEFT JOIN** with website_pageviews again, restricting only url '/home' and '/lander-1'
-* Thirdly, I joined with order to find order for each sessions which converted in to transactions. I used **LEFT JOIN** because there are some sessions not converting into transactions.
-* Lastly, I calculated conversion rate for each landing page.
+Then I did following steps to calculate conversion rate.
+
+Firstly, I used **TEMPORARY TABLE** where I merged website_pageviews and website_sessions to generate all session with their first pageview
 ````sql
-DROP TABLE IF EXISTS conv_rate; 
-CREATE temporary TABLE conv_rate AS 	
-	WITH first_test_pv AS (
-		Select
-		    A.website_session_id,
-		    Min(A.website_pageview_id) as min_pv_id
-		From website_pageviews A
-		INNER JOIN website_sessions B
-			On A.website_session_id = B.website_session_id
-	        AND B.created_at < '2012-07-28'
-	        AND A.website_pageview_id > 23504
-	        AND utm_source = 'gsearch'
-	        AND utm_campaign = 'nonbrand'
-		Group by 
-			A.website_session_id
-), -- Bring in landing page to each session, restricting to home or lander 1 only
-	nonbrand_test_session_w_landing_pages AS (
-		Select
-			A.website_session_id,
-			B.pageview_url as landing_page
-		From first_test_pv A
-		Left join website_pageviews B
-			ON A.min_pv_id = B.website_pageview_id 
-		Where B.pageview_url IN ('/home', '/lander-1' )
-),
-	-- bring in orders
-	nonbrand_test_session_w_orders AS (
-		Select
-			A.website_session_id,
-			A.landing_page,
-			B.order_id as order_id
-		From nonbrand_test_session_w_landing_pages A
-		Left join orders B
-			ON A.website_session_id= B.website_session_id;
-)
-	--Find differences conv rate between 2 landing pages
+DROP TABLE IF EXISTS first_test_pv; 
+CREATE temporary TABLE first_test_pv AS 	
+	Select
+	    A.website_session_id,
+	    Min(A.website_pageview_id) as min_pv_id
+	From website_pageviews A
+	INNER JOIN website_sessions B
+		On A.website_session_id = B.website_session_id
+	AND B.created_at < '2012-07-28'
+	AND A.website_pageview_id > 23504
+	AND utm_source = 'gsearch'
+	AND utm_campaign = 'nonbrand'
+	Group by A.website_session_id;
+````
+
+Secondly, I found landing page for each session by **LEFT JOIN** with website_pageviews again, restricting only url '/home' and '/lander-1'
+````sql
+DROP TABLE IF EXISTS nonbrand_test_session_w_landing_pages; 
+CREATE temporary TABLE nonbrand_test_session_w_landing_pages AS 	
+	Select
+		A.website_session_id,
+		B.pageview_url as landing_page
+	From first_test_pv A
+	Left join website_pageviews B
+		ON A.min_pv_id = B.website_pageview_id 
+	Where B.pageview_url IN ('/home', '/lander-1' );
+````
+
+Thirdly, I joined with order to find order for each sessions which converted in to transactions. I used **LEFT JOIN** because there are some sessions not converting into transactions.
+````sql
+DROP TABLE IF EXISTS nonbrand_test_session_w_orders; 
+CREATE temporary TABLE nonbrand_test_session_w_orders AS 	
+	Select
+		A.website_session_id,
+		A.landing_page,
+		B.order_id as order_id
+	From nonbrand_test_session_w_landing_pages A
+	Left join orders B
+		ON A.website_session_id= B.website_session_id;
+````
+
+Lastly, I calculated conversion rate for each landing page.
+
+````sql
 	Select
 		landing_page,
 		Count(Distinct website_session_id) as sessions,
