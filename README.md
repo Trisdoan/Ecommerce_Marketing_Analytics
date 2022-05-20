@@ -19,13 +19,12 @@ Provide answers for ad-hoc request from manager.
 **5. Explain growth by diving to channels and website optimizations**
 
 
-## Summarized Insights
-
-1. 
-
-
 ## Techniques I used:
-1. 
+1. Joins: **LEFT JOIN**
+2. Aggregate functions
+3. **CASE WHEN**
+4. **CTE** and **TEMPORARY TABLE**
+
 
 # PART 1
   The company has been live for 8 month. CEO requested to make a dashboard in order to present company performance metrics to the board.
