@@ -1,30 +1,30 @@
-# Case Study: Ecommerce Marketing Analytics
+# :computer:Ecommerce Marketing Analytics
 
 CREDIT: John Pauler.
 
 You can view his course here: https://www.udemy.com/course/advanced-sql-mysql-for-analytics-business-intelligence/
 
-## Case Study Overview
+## :page_facing_up:Overview
+I work as an Data Analyst for Maven Fuzzy Factory, an online retailer.
 
-Provide answers for ad-hoc request from manager.
-
-**1. Using trended perfomance data to show company's growth**
-
-**2. Explain details company's perfomance**
-
-**3. Quantify the revenue impact**
-
-**4. Analyze current performance and assess upcoming opportunities**
-
-**5. Explain growth by diving to channels and website optimizations**
+I worked with the Head of Marketing and website manager to evaluate company's performance: marketing channels, website conversion rate and understanding impact of new product launches.
 
 
-## Techniques I used:
-1. Joins: **LEFT JOIN**
-2. Aggregate functions
-3. **CASE WHEN**
-4. **CTE** and **TEMPORARY TABLE**
+## :pencil:Objectives
+1. Using trended perfomance data to show company's growth
 
+2. Explain details company's perfomance
+
+3. Quantify the revenue impact
+
+4. Analyze current performance and assess upcoming opportunities
+
+5. Explain growth by diving to channels and website optimizations
+
+## :green_book:Table of contents
+
+1. Part 1 - Analyzing first 8 month
+2. Part 2 - Analyzing
 
 # PART 1
   The company has been live for 8 month. CEO requested to make a dashboard in order to present company performance metrics to the board.
