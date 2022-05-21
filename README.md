@@ -23,8 +23,8 @@ I worked with the Head of Marketing and website manager to evaluate company's pe
 
 ## :green_book:Table of contents
 
-1. Part 1 - Analyzing first 8 month
-2. Part 2 - Analyzing
+1. [Part 1 - Analyzing first 8 month](#part-1)
+2. [Part 2 - Evaluating the business after 2 years](#part-2)
 
 # PART 1
   The company has been live for 8 month. CEO requested to make a dashboard in order to present company performance metrics to the board.
@@ -384,6 +384,8 @@ So there were 1194 sessions in total when the new version was implemented, meani
 
 
 
+
+# Part 2
 
 ## 9.  Show volume growth: Pull overall session and order volume, trended by quarter
 
